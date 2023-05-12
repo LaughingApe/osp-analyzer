@@ -10,7 +10,8 @@ from osp_reader import OSPReader
 
 
 ospReader = OSPReader()
-# ospReader.read_categories()
-# ospReader.print_categories_tables_with_extra_info()
+ospReader.read_categories()
+ospReader.print_categories_tables_with_extra_info()
 ospReader.read_tables_from_file()
+ospReader.evaluate_metadata()
  

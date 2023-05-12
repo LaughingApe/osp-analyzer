@@ -9,7 +9,8 @@ from matplotlib import pyplot
 
 class OSPReader:
 
-    table_limit = 2
+    table_limit = 150
+    sleep_time = 2
 
     def __init__(self):
         self.tables_read = 0
@@ -24,28 +25,28 @@ class OSPReader:
         for i in range(len(self.categories)):
             if self.tables_read >= OSPReader.table_limit:
                 break
-            time.sleep(1)
+            time.sleep(self.sleep_time)
             scb = SCB('en', self.categories[i]['id'])
             self.categories[i]['subcategories'] = scb.get_data() # POP
 
             for j in range(len(self.categories[i]['subcategories'])):
                 if self.tables_read >= OSPReader.table_limit:
                     break
-                time.sleep(1)
+                time.sleep(self.sleep_time)
                 scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'])
                 self.categories[i]['subcategories'][j]['subcategories'] = scb.get_data() # POP/IR
 
                 for k in range(len(self.categories[i]['subcategories'][j]['subcategories'])):
                     if self.tables_read >= OSPReader.table_limit:
                         break
-                    time.sleep(1)
+                    time.sleep(self.sleep_time)
                     scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['id'])
                     self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'] = scb.get_data()  # POP/IR/IRE
 
                     for m in range(len(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'])):
                         if self.tables_read >= OSPReader.table_limit:
                             break
-                        time.sleep(1)
+                        time.sleep(self.sleep_time)
                         scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id'])
                         self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['table'] = scb.get_data()  # POP/IR/IRE/IRE010
                         self.tables_read += 1
@@ -108,4 +109,43 @@ class OSPReader:
                 with open(os.path.join(directory, filename), "r") as f:
                     json_data = json.load(f)
                     self.tables.append(json_data)
+
+    def evaluate_metadata(self):
+        infofile_cnt = 0
+        updated_cnt = 0
+        label_cnt = 0
+        source_cnt = 0
+        sum_of_lengths = 0
+
+        for table in self.tables:
+            (infofile_present, updated_present, label_present, source_present, label_length) = self.evaluate_metadata_of_table(table)
+            infofile_cnt += 1 if infofile_present else 0
+            updated_cnt += 1 if updated_present else 0
+            label_cnt += 1 if label_present else 0
+            source_cnt += 1 if source_present else 0
+            sum_of_lengths += label_length
+
+        print('Stats for read tables.')
+        print('Infofile field provided: ', infofile_cnt, '/', len(self.tables))
+        print('Updated field provided: ', updated_cnt, '/', len(self.tables))
+        print('Label field provided: ', label_cnt, '/', len(self.tables))
+        print('Source field provided: ', source_cnt, '/', len(self.tables))
+        print('Average label length: ', sum_of_lengths / len(self.tables))
+        
+
+    def evaluate_metadata_of_table(self, table):
+        # Extract the metadata from the table
+        metadata = table["table"]["metadata"][0]
+
+        # Check if each metadata field is present and not empty
+        infofile_present = "infofile" in metadata and metadata["infofile"]
+        updated_present = "updated" in metadata and metadata["updated"]
+        label_present = "label" in metadata and metadata["label"]
+        source_present = "source" in metadata and metadata["source"]
+
+        # Get the length of the label
+        label_length = len(metadata["label"])
+
+        # Return the results as a tuple
+        return (infofile_present, updated_present, label_present, source_present, label_length)
 
