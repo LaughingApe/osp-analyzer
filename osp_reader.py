@@ -6,7 +6,6 @@ import json
 from pyscbwrapper import SCB
 from matplotlib import pyplot
 
-
 class OSPReader:
 
     table_limit = 150
@@ -70,12 +69,21 @@ class OSPReader:
                         if not 'table' in self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]:
                             continue
 
-                        path = os.path.join('outputs/tables', self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id'] + '.json')
+                        cat1 = self.categories[i]['id']
+                        cat2 = self.categories[i]['subcategories'][j]['id']
+                        cat3 = self.categories[i]['subcategories'][j]['subcategories'][k]['id']
+                        cat4 = self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id']
+                        table_path = cat1 + '-' + cat2 + '-' + cat3 + '-' + cat4
+                        
+                        if os.path.isfile('outputs/tables' + table_path):
+                            print ('Warning! File ', table_path, ' already exists and will be rewritten.')
+
+                        path = os.path.join('outputs/tables', table_path + '.json')
                         with open(path, 'w') as f:
                             json.dump(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['table'], f, indent=4, ensure_ascii=False)
                         
                         table_counter += 1
-                        print('Printed ', table_counter, '/', self.table_limit, ' tables')
+                        print('Printed ', table_counter, '/', self.table_limit, ' tables (', table_path ,')')
 
     def print_categories_tables_with_extra_info(self):
         table_counter = 0
@@ -93,12 +101,21 @@ class OSPReader:
                         if not 'table' in self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]:
                             continue
 
-                        path = os.path.join('outputs/tables', self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id'] + '.json')
+                        cat1 = self.categories[i]['id']
+                        cat2 = self.categories[i]['subcategories'][j]['id']
+                        cat3 = self.categories[i]['subcategories'][j]['subcategories'][k]['id']
+                        cat4 = self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id']
+                        table_path = cat1 + '-' + cat2 + '-' + cat3 + '-' + cat4
+                        
+                        if os.path.isfile('outputs/tables' + table_path):
+                            print ('Warning! File ', table_path, ' already exists and will be rewritten.')
+
+                        path = os.path.join('outputs/tables', table_path + '.json')                        
                         with open(path, 'w', encoding='utf-8') as f:
                             json.dump(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m], f, indent=4, ensure_ascii=False)
                         
                         table_counter += 1
-                        print('Printed ', table_counter, '/', self.table_limit, ' tables with extra info')
+                        print('Printed ', table_counter, '/', self.table_limit, ' tables with extra info (', table_path ,')')
     
     def read_tables_from_file(self):
         directory = 'outputs/tables'
