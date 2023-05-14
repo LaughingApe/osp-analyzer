@@ -6,13 +6,8 @@ import json
 from pyscbwrapper import SCB
 
 class OspApiAnalyzer:
-
-    def __init__(self):
-        self.tables_read = 0
-        self.table_limit = 150
-        self.sleep_time = 2
-        
-    def __init__(self, table_limit, sleep_time):
+    
+    def __init__(self, table_limit = 150, sleep_time = 2):
         self.tables_read = 0
         self.table_limit = table_limit
         self.sleep_time = sleep_time
