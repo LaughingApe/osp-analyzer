@@ -4,15 +4,18 @@ import time
 import json
 
 from pyscbwrapper import SCB
-from matplotlib import pyplot
 
-class OSPReader:
-
-    table_limit = 150
-    sleep_time = 2
+class OspApiAnalyzer:
 
     def __init__(self):
         self.tables_read = 0
+        self.table_limit = 150
+        self.sleep_time = 2
+        
+    def __init__(self, table_limit, sleep_time):
+        self.tables_read = 0
+        self.table_limit = table_limit
+        self.sleep_time = sleep_time
     
     def read_categories(self):
         
@@ -22,28 +25,28 @@ class OSPReader:
         print(self.categories)
 
         for i in range(len(self.categories)):
-            if self.tables_read >= OSPReader.table_limit:
+            if self.tables_read >= OspApiAnalyzer.table_limit:
                 break
             time.sleep(self.sleep_time)
             scb = SCB('en', self.categories[i]['id'])
             self.categories[i]['subcategories'] = scb.get_data() # POP
 
             for j in range(len(self.categories[i]['subcategories'])):
-                if self.tables_read >= OSPReader.table_limit:
+                if self.tables_read >= OspApiAnalyzer.table_limit:
                     break
                 time.sleep(self.sleep_time)
                 scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'])
                 self.categories[i]['subcategories'][j]['subcategories'] = scb.get_data() # POP/IR
 
                 for k in range(len(self.categories[i]['subcategories'][j]['subcategories'])):
-                    if self.tables_read >= OSPReader.table_limit:
+                    if self.tables_read >= OspApiAnalyzer.table_limit:
                         break
                     time.sleep(self.sleep_time)
                     scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['id'])
                     self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'] = scb.get_data()  # POP/IR/IRE
 
                     for m in range(len(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'])):
-                        if self.tables_read >= OSPReader.table_limit:
+                        if self.tables_read >= OspApiAnalyzer.table_limit:
                             break
                         time.sleep(self.sleep_time)
                         scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id'])
