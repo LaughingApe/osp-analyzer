@@ -1,4 +1,4 @@
-from Modules.osp_webscraper import OspWebScraper
+from Modules.osp_gui_analyzer import OspGuiAnalyzer
 
-ospWebScraper = OspWebScraper()
-ospWebScraper.analyze_metadata()
+ospGuiAnalyzer = OspGuiAnalyzer()
+ospGuiAnalyzer.analyze_metadata()

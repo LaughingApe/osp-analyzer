@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 ALL_TABLES_URL = 'https://data.stat.gov.lv/api/v1/lv/OSP_PUB?query=*&filter=*'
 TABLE_URL_BASE = 'https://data.stat.gov.lv/pxweb/lv/OSP_PUB/START__'
 
-class OspWebScraper:
+class OspGuiAnalyzer:
 
     def __init__(self, table_limit = 3, sleep_time = 2):
         self.tables_read = 0

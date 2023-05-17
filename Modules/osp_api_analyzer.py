@@ -6,6 +6,8 @@ import json
 from pyscbwrapper import SCB
 import matplotlib.pyplot as plt
 
+TABLES_DIR = 'outputs/tables'
+
 class OspApiAnalyzer:
     
     def __init__(self, table_limit = 150, sleep_time = 2):
@@ -13,75 +15,83 @@ class OspApiAnalyzer:
         self.table_limit = table_limit
         self.sleep_time = sleep_time
     
-    def read_categories(self):
+    def read_tables_from_api(self):
         
         scb = SCB('en')
-        self.categories = scb.get_data() # categories
-    
+        self.categories = scb.get_data() # All 1st level categories
 
-        print(self.categories)
-
-        for i in range(len(self.categories)):
+        for i in range(len(self.categories)): # Go through all 1st level categories
             if self.tables_read >= self.table_limit:
                 break
             time.sleep(self.sleep_time)
             scb = SCB('en', self.categories[i]['id'])
             self.categories[i]['subcategories'] = scb.get_data() # POP
 
-            for j in range(len(self.categories[i]['subcategories'])):
+            for j in range(len(self.categories[i]['subcategories'])): # Go through all 2nd level categories
                 if self.tables_read >= self.table_limit:
                     break
                 time.sleep(self.sleep_time)
                 scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'])
                 self.categories[i]['subcategories'][j]['subcategories'] = scb.get_data() # POP/IR
 
-                for k in range(len(self.categories[i]['subcategories'][j]['subcategories'])):
+                for k in range(len(self.categories[i]['subcategories'][j]['subcategories'])):  # Go through all 3rd level categories
                     if self.tables_read >= self.table_limit:
                         break
                     time.sleep(self.sleep_time)
                     scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['id'])
                     self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'] = scb.get_data()  # POP/IR/IRE
 
-                    for m in range(len(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'])):
+                    for m in range(len(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'])):  # Go through all 4th level categories
                         if self.tables_read >= self.table_limit:
                             break
                         time.sleep(self.sleep_time)
 
-                        cat1 = self.categories[i]['id']
-                        cat2 = self.categories[i]['subcategories'][j]['id']
-                        cat3 = self.categories[i]['subcategories'][j]['subcategories'][k]['id']
-                        cat4 = self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id']
-                        table_path = cat1 + '-' + cat2 + '-' + cat3 + '-' + cat4
+                        # Create a unique name for the data set/table
+                        table_name = self.get_name(i, j, k, m)
                         
+                        # Get the metadata for this data set
                         try:
                             scb = SCB('en', self.categories[i]['id'], self.categories[i]['subcategories'][j]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['id'], self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id'])
                             self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['table'] = scb.get_data()  # POP/IR/IRE/IRE010
                         except Exception as err:
-                            print('Failed reading API response for', table_path, '. Error: ', err, 'Skipping...')
+                            print('Failed reading API response for', table_name, '. Error: ', err, 'Skipping...')
                             continue
 
+                        # Print an update about how many tables have been processed
                         self.tables_read += 1
                         print('Read ', self.tables_read, '/', self.table_limit, ' tables')
 
+                        # Save the file
+                        self.save_table(i, j, k, m)
                         
-                        
-                        if os.path.isfile('outputs/tables' + table_path):
-                            print ('Warning! File ', table_path, ' already exists and will be rewritten.')
 
-                        path = os.path.join('outputs/tables', table_path + '.json')                        
-                        with open(path, 'w', encoding='utf-8') as f:
-                            json.dump(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m], f, indent=4, ensure_ascii=False)
-                        
-                        print('Printed ', self.tables_read, '/', self.table_limit, ' tables (', table_path ,')')
-
+    # Returns a unique name for the data set/table
+    def get_name(self, i, j, k, m):
+        cat1 = self.categories[i]['id']
+        cat2 = self.categories[i]['subcategories'][j]['id']
+        cat3 = self.categories[i]['subcategories'][j]['subcategories'][k]['id']
+        cat4 = self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m]['id']
+        return cat1 + '-' + cat2 + '-' + cat3 + '-' + cat4
     
+    def save_table(self, i, j, k, m):
+        table_name = self.get_name(i, j, k, m)
+        # Warn if the file is going to be rewritten
+        if os.path.isfile(TABLES_DIR + table_name):
+            print ('Warning! File ', table_name, ' already exists and will be rewritten.')
+
+        # Save the file
+        path = os.path.join(TABLES_DIR, table_name + '.json')                        
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(self.categories[i]['subcategories'][j]['subcategories'][k]['subcategories'][m], f, indent=4, ensure_ascii=False)
+        
+        print('Printed ', self.tables_read, '/', self.table_limit, ' tables (', table_name ,')')
+
     def read_tables_from_file(self):
-        directory = 'outputs/tables'
         self.tables = []
 
-        for filename in os.listdir(directory):
+        for filename in os.listdir(TABLES_DIR):
             if filename.endswith('.json'):
-                with open(os.path.join(directory, filename), 'r', encoding='utf-8') as f:
+                with open(os.path.join(TABLES_DIR, filename), 'r', encoding='utf-8') as f:
                     json_data = json.load(f)
                     self.tables.append(json_data)
                     print('Read', len(self.tables), 'JSON files', end='\r')
