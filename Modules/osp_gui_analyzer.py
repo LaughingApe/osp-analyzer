@@ -75,12 +75,13 @@ class OspGuiAnalyzer:
     def analyze_metadata(self):
 
         section_length_data = []
+
+        files = os.listdir('outputs/metadata_pages')
         
-        for filename in os.listdir('outputs/metadata_pages'):
+        for filename in files:
             if filename.endswith('.html'):
                 file_path = os.path.join('outputs/metadata_pages', filename)
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    print(filename)
                     metadata_page = BeautifulSoup(f.read(), 'html.parser')
                     
                     subheaders = metadata_page.find_all('h2')
@@ -106,10 +107,12 @@ class OspGuiAnalyzer:
 
                         section_title = subheader.get_text().strip()
                         section_lengths[section_title] = len(section_text)
-                        print ('|- Section', section_title, ": ", len(section_text))
                     
                     section_length_data.append(section_lengths)
-
+                    print('Processed', len(section_length_data), '/', len(files), 'HTML metadata files', end='\r')
+                    if len(section_lengths) < 4:
+                        print('Warning: Data set', file_path, 'has', len(section_lengths), 'sections. ')
+        
         # Group section lengths by section title
         grouped_sections = {}
         for section_lengths in section_length_data:
@@ -118,12 +121,22 @@ class OspGuiAnalyzer:
                     grouped_sections[section_title] = []
                 grouped_sections[section_title].append(section_length)
 
+        # for section in grouped_sections:
+
+        #     empty_sections = 0
+
+        #     for x in grouped_sections[section]:
+        #         if x < 350:
+        #             empty_sections += 1
+            
+        #     print('Instances of empty section "', section, '":', empty_sections, '/', len(grouped_sections[section]))
+
         # Create a separate histogram for each section title
         for section_title, section_lengths in grouped_sections.items():
             plt.hist(section_lengths, bins=20)
             plt.title(section_title)
-            plt.xlabel('Section Length')
-            plt.ylabel('Number of Pages')
+            plt.xlabel('Sadaļas garums')
+            plt.ylabel('Datu kopu skaits')
             plt.show()
                 
     
