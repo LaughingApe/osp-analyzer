@@ -50,6 +50,7 @@ class OspGuiAnalyzer:
                 continue
 
             self.download_metadata_page(table_response, url_ending)
+            print('Saved metadata HTML file ', i+1, '/', min(self.table_limit, len(self.tables)), ': ', url_ending.replace('/', '__') + '.html')
 
     def download_metadata_page(self, table_response, url_ending):
         table_page_html = BeautifulSoup(table_response.text, 'html.parser')
@@ -76,8 +77,6 @@ class OspGuiAnalyzer:
         path = os.path.join(METADATA_HTML_DIR, metadata_filename)
         with open(path, 'wb') as f:
             f.write(metadata_response.content)
-
-        print('Saved metadata HTML file ', i+1, '/', min(self.table_limit, len(self.tables)), ': ', metadata_filename)
 
 
     def analyze_metadata(self, subsections = False):
