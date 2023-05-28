@@ -122,7 +122,10 @@ class OspApiAnalyzer:
         print('Source field provided: ', source_cnt, '/', len(self.tables))
         print('Average label length: ', sum_of_lengths / len(self.tables))
 
-        plt.hist(lengths, bins=10)
+        max_length = max(lengths)
+        step = max(max_length // 10, 1)
+        plt.hist(lengths, bins=range(0, max_length + step, step), edgecolor='black', alpha=0.7)
+        plt.xlim(0, max_length + step)
         plt.title('Lauka "label" kā simbolu virknes garums')
         plt.xlabel('Lauka garums')
         plt.ylabel('Lauku skaits')
